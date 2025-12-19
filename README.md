@@ -1,33 +1,19 @@
-# FlashForge Adventurer 3 for Home Assistant
+# FlashForge Guider 2s for Home Assistant
 
-A custom Home Assistant integration for the FlashForge Adventurer 3 printer.
+A Home Assistant integration for the FlashForge Guider 2s printer.
 
-It adds three entities:
-
-- state, together with nozzle and bed temperatures available as attributes
-- current print job's progress
-- camera feed
-
-<img src="https://raw.githubusercontent.com/modrzew/hass-flashforge-adventurer-3/master/example.png" alt="Example dashboard" width="800"/>
+## Features
+- Printer state sensor (online/printing/offline) with attributes for temperatures and job details.
+- Progress sensor (percentage).
+- Online binary sensor.
+- MJPEG camera entity for the built-in stream.
+- Service `flashforge_guider_2s.refresh` to force an immediate poll.
 
 ## Installation
+1. Install via [HACS](https://hacs.xyz/) as a custom repository, or copy this repository to `custom_components/flashforge_guider_2s` in your Home Assistant config directory.
+2. Restart Home Assistant.
+3. Go to Settings → Integrations → Add integration → search for “FlashForge Guider 2s”.
+4. Enter the printer IP (and port if different from default 8899). Assign a static IP in your network for reliability.
 
-You can install it through [HACS](https://hacs.xyz/). Alternatively, you can
-download this repo and add it to your `custom_components` directory.
-
-After the integration is installed, go to Settings -> Integrations, and
-configure it through the _Add integration_ button. You will need to provide the
-IP address of the printer. It might be a good idea to assign it a static IP
-address in your router settings.
-
-## Printer compatibility
-
-I own the Adventurer 3 printer at the moment, so that's the model which is 100%
-supported. There are reports of other users trying this integration with other
-FlashForge printers:
-
-| Printer | Notes |
-| - | - |
-| FlashForge Adventurer 3 | supported |
-| FlashForge Adventurer 4 | seems to work ([related issue](https://github.com/modrzew/hass-flashforge-adventurer-3/issues/1)) |
-| FlashForge Adventurer 3X | seems to work ([related issue](https://github.com/modrzew/hass-flashforge-adventurer-3/issues/2)) |
+## Compatibility
+Developed and tested with FlashForge Guider 2s. Other models may work but are unverified. Please open an issue if you test another model successfully (or encounter problems).

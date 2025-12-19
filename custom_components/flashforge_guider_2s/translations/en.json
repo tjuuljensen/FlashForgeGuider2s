@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "FlashForge Guider 2s setup",
+        "description": "Enter the printer details",
+        "data": {
+          "ip_address": "IP address",
+          "port": "Port (default: 8899)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the printer. Check IP/port and try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    }
+  }
+}

@@ -19,7 +19,7 @@ TEMPERATURE_REPLY_REGEX = re.compile('CMD M105 Received.\r\nT0:(\d+)\W*/(\d+) B:
 class PrinterStatus(TypedDict):
     online: bool
     printing: Optional[bool]
-    progress: Optional[int]
+    progress: Optional[float]
     bed_temperature: Optional[int]
     desired_bed_temperature: Optional[int]
     nozzle_temperature: Optional[int]
@@ -54,9 +54,9 @@ async def collect_data(ip: str, port: int) -> Tuple[PrinterStatus, Optional[str]
 def parse_data(response: PrinterStatus, print_job_info: str, temperature_info: str) -> PrinterStatus:
     print_job_info_match = STATUS_REPLY_REGEX.match(print_job_info)
     if print_job_info_match:
-        current = int(print_job_info_match.group(1))
-        total = int(print_job_info_match.group(2))
-        response['progress'] = int(current / total * 100)
+        # For Guider 2s the number needs to be divided by 10
+        progress10x = int(print_job_info_match.group(1))
+        response['progress'] = float(progress10x/10)
     temperature_match = TEMPERATURE_REPLY_REGEX.match(temperature_info)
     if temperature_match:
         # Printer is printing if desired temperatures are greater than zero. If not, it's paused.

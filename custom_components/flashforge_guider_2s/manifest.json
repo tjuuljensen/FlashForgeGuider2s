@@ -1,0 +1,12 @@
+{
+  "domain": "flashforge_guider_2s",
+  "name": "FlashForge Guider 2s",
+  "codeowners": ["@tjuuljensen"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/tjuuljensen/FlashForgeGuider2s",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/tjuuljensen/FlashForgeGuider2s/issues",
+  "requirements": [],
+  "version": "1.2.0"
+}

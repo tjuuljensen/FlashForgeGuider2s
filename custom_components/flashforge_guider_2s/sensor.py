@@ -1,5 +1,5 @@
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from typing import Any, Callable, Dict, Optional, TypedDict
 
 import async_timeout
@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 import voluptuous as vol
 
-from .const import DOMAIN
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
 from .protocol import get_print_job_status
 
 LOGGER = logging.getLogger(__name__)
@@ -31,50 +31,74 @@ class PrinterDefinition(TypedDict):
     port: int
 
 
+async def get_coordinator(hass, config_entry, config):
+    """Reuse a single coordinator per config entry."""
+    if config_entry.options:
+        config.update(config_entry.options)
+    coordinator = hass.data[DOMAIN][config_entry.entry_id].get("coordinator")
+    if coordinator is None:
+        coordinator = FlashforgeGuider2sCoordinator(
+            hass,
+            config,
+            scan_interval=config.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
+        hass.data[DOMAIN][config_entry.entry_id]["coordinator"] = coordinator
+    return coordinator
+
+
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
     async_add_entities: Callable,
 ) -> bool:
     config = hass.data[DOMAIN][config_entry.entry_id]
-    if config_entry.options:
-        config.update(config_entry.options)
-    coordinator = FlashforgeAdventurer3Coordinator(hass, config)
-    await coordinator.async_config_entry_first_refresh()
+    coordinator = await get_coordinator(hass, config_entry, config)
     sensors = [
-        FlashforgeAdventurer3StateSensor(coordinator, config),
-        FlashforgeAdventurer3ProgressSensor(coordinator, config),
+        FlashforgeGuider2sStateSensor(coordinator, config),
+        FlashforgeGuider2sProgressSensor(coordinator, config),
     ]
     async_add_entities(sensors, update_before_add=True)
 
 
-class FlashforgeAdventurer3Coordinator(DataUpdateCoordinator):
-    def __init__(self, hass, printer_definition: PrinterDefinition):
+class FlashforgeGuider2sCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass, printer_definition: PrinterDefinition, scan_interval: int):
         super().__init__(
             hass,
             LOGGER,
-            name='My sensor',
-            update_interval=timedelta(seconds=60),
+            name='FlashForge Guider 2s',
+            update_interval=timedelta(seconds=scan_interval),
         )
         self.ip = printer_definition['ip_address']
         self.port = printer_definition['port']
 
     async def _async_update_data(self):
         async with async_timeout.timeout(5):
-            return await get_print_job_status(self.ip, self.port)
+            try:
+                return await get_print_job_status(self.ip, self.port)
+            except Exception:  # noqa: BLE001 - surface connection issues as offline
+                return {'online': False}
 
 
-class FlashforgeAdventurer3CommonPropertiesMixin:
+class FlashforgeGuider2sCommonPropertiesMixin:
     @property
     def name(self) -> str:
-        return f'FlashForge Adventurer 3'
+        return f'FlashForge Guider 2s'
 
     @property
     def unique_id(self) -> str:
-        return f'flashforge_adventurer_3_{self.ip}'
+        return f'flashforge_guider_2s_{self.ip}'
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self.ip)},
+            "name": "FlashForge Guider 2s",
+            "manufacturer": "FlashForge",
+            "model": "Guider 2s",
+        }
 
 
-class BaseFlashforgeAdventurer3Sensor(FlashforgeAdventurer3CommonPropertiesMixin, CoordinatorEntity, Entity):
+class BaseFlashforgeGuider2sSensor(FlashforgeGuider2sCommonPropertiesMixin, CoordinatorEntity, Entity):
     def __init__(self, coordinator: DataUpdateCoordinator, printer_definition: PrinterDefinition) -> None:
         super().__init__(coordinator)
         self.ip = printer_definition['ip_address']
@@ -87,10 +111,6 @@ class BaseFlashforgeAdventurer3Sensor(FlashforgeAdventurer3CommonPropertiesMixin
         return self._state
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
-        return self.attrs
-
-    @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         return self.attrs
 
@@ -100,7 +120,7 @@ class BaseFlashforgeAdventurer3Sensor(FlashforgeAdventurer3CommonPropertiesMixin
         self.async_write_ha_state()
 
 
-class FlashforgeAdventurer3StateSensor(BaseFlashforgeAdventurer3Sensor):
+class FlashforgeGuider2sStateSensor(BaseFlashforgeGuider2sSensor):
     @property
     def name(self) -> str:
         return f'{super().name} state'
@@ -128,7 +148,7 @@ class FlashforgeAdventurer3StateSensor(BaseFlashforgeAdventurer3Sensor):
         return 'mdi:printer-3d'
 
 
-class FlashforgeAdventurer3ProgressSensor(BaseFlashforgeAdventurer3Sensor):
+class FlashforgeGuider2sProgressSensor(BaseFlashforgeGuider2sSensor):
     @property
     def name(self) -> str:
         return f'{super().name} progress'
