@@ -1,4 +1,4 @@
-DOMAIN = 'flashforge_guider_2s'
+DOMAIN = 'flashforge_guider2s'
 CONF_PRINTERS = '3dprinters'
 DEFAULT_PORT = 8899
 CONF_SCAN_INTERVAL = 'scan_interval'

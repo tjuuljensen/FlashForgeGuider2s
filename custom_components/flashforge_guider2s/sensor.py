@@ -86,7 +86,7 @@ class FlashforgeGuider2sCommonPropertiesMixin:
 
     @property
     def unique_id(self) -> str:
-        return f'flashforge_guider_2s_{self.ip}'
+        return f'flashforge_guider2s_{self.ip}'
 
     @property
     def device_info(self):
